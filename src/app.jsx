@@ -8,18 +8,44 @@ class App extends Component {
       amountReceived: 0,
       alertSuccess: '',
       alertDanger: '',
-      twenties: 0,
-      tens: 0,
-      fives: 0,
-      ones: 0,
-      quarters: 0,
-      dimes: 0,
-      nickels: 0,
-      pennies: 0,
       success: true,
+      usa: true,
+      usd: {
+        bills: {
+          twenties: 0,
+          tens: 0,
+          fives: 0,
+          ones: 0,
+        },
+        coins: {
+          quarters: 0,
+          dimes: 0,
+          nickels: 0,
+          pennies: 0,
+        }
+      },
+      eur: {
+        bills: {
+          twenties: 0,
+          tens: 0,
+          fives: 0,
+        },
+        coins: {
+          oneCent: 0,
+          fiveCent: 0,
+          tenCent: 0,
+          twentyCent: 0,
+          ones: 0,
+        }
+      }
+
+
     }
+  
     this.changeValues = this.changeValues.bind(this);
     this.calculate = this.calculate.bind(this);
+    this.toggleCurrency = this.toggleCurrency.bind(this);
+    
   }
 
   changeValues(e){
@@ -40,30 +66,68 @@ class App extends Component {
     const coin = (change-Math.floor(change)).toFixed(2);
     const quarters = Math.floor(coin/.25);
     const dimes = Math.floor((coin-(quarters*.25))/.10)
-    const nickels = Math.floor((coin-((quarters*.25)+(dimes*.10)))/.05)
+    const nickels = Math.ceil((coin-((quarters*.25)+(dimes*.10)))/.05)
     const pennies = Math.round((coin-((quarters*.25)+(dimes*.10)+(nickels*.05)))/.01);
+    const eurTwentyCent = Math.floor(coin/.20);
     this.setState({ 
       success: (change >= 0) ? true : false, 
-      alertSuccess: `The total change due is $${change}.`,
-      alertDanger: `Additional $${negChange} still owed`,
-      twenties: twenties,
-      tens: tens,
-      fives: fives,
-      ones: ones, 
-      quarters: quarters,
-      dimes: dimes,
-      nickels: nickels,
-      pennies: pennies,
+      alertSuccessUsd:`The total change due is $${change}`,
+      alertSuccessEur: `The total change due is €${change}`, 
+      alertDangerUsd: `Additional $${negChange} still owed`,
+      alertDangerEur: `Additional €${negChange} still owed`,
+      usd: {
+        bills: {
+          twenties: change > 0 ? twenties : 0,
+          tens: change > 0 ? tens : 0,
+          fives: change > 0 ? fives : 0,
+          ones:  change > 0 ? ones : 0,
+        },
+        coins: {
+          quarters: change > 0 ? quarters : 0,
+          dimes: change > 0 ? dimes : 0,
+          nickels: change > 0 ? nickels : 0,
+          pennies: change > 0 ? pennies : 0,
+        }
+      },
+      eur: {
+        bills: {
+          twenties: change > 0 ? twenties : 0,
+          tens: change > 0 ? tens : 0,
+          fives: change > 0 ? fives : 0,
+        },
+        coins: {
+          ones: change > 0 ? ones : 0,
+          twentyCent: change > 0 ? eurTwentyCent : 0,
+          tenCent: change > 0 ? dimes : 0,
+          fiveCent: change > 0 ? nickels : 0,
+          oneCent: change > 0 ? pennies : 0,
+        }
+      }
         
     });
+    
+  }
+
+  toggleCurrency(e){
+    this.setState({
+      usa: !this.state.usa
+    })
+
 
   }
   
   render(){
+    var select = {
+      paddingLeft: '20px',
+      marginLeft: '8px',
+      marginBottom: '10px',
+      backgroundColor: '#e6e6e6'
+    }
+
     var panel = {
       borderLeftWidth: '0px',
       paddingLeft: '2px',
-      height: '222px',
+      height: '262px',
     }
 
     var panelBody = {    
@@ -90,6 +154,7 @@ class App extends Component {
       margin: '10px',
       width: '316px',
     }
+    var twenties = 0;
     return(
       <div className='container'>
         <div id='header'>
@@ -104,6 +169,12 @@ class App extends Component {
               <div className='panel-body container' style={panelBody}></div>
                 <form onSubmit={this.calculate}>
                   <div className='form-group'>
+                    <div className='custom-select' style={{width: '200px'}}>
+                      <select className='form-control' style={select} onChange={this.toggleCurrency}>
+                        <option value='0'>USD</option>
+                        <option value='1'>EUR</option>
+                      </select>
+                    </div>
                     <div style={label1}>
                       <label htmlFor='amountDue'>How much is due?</label>
                     </div>
@@ -123,60 +194,118 @@ class App extends Component {
                 </form>
             </div>
           </div>
-          <div className='col-md-8 well'>
+          <div className='col-md-8 well change' id='usd' hidden={!this.state.usa}>
             <div className='alerts' style={{textAlign: 'center', fontWeight: 'bold'}}>
-              <div className='alert alert-success' hidden={!this.state.success}>{this.state.alertSuccess}</div>
-              <div className='alert alert-danger' hidden={this.state.success} >{this.state.alertDanger}</div>
+              <div className='alert alert-success' hidden={!this.state.success}>{this.state.alertSuccessUsd}</div>
+              <div className='alert alert-danger' hidden={this.state.success} >{this.state.alertDangerUsd}</div>
             </div>
             <div className='row'>
               <div className='col-md-3'>
                 <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
-                  <h4 className='twenties' style={{fontWeight: 'bold'}}>Twenties</h4>
-                  <p name='twenties'className='num-twenties'>{this.state.twenties}</p>
+                  <h4 className='twent' style={{fontWeight: 'bold'}}> twenties</h4>
+                  <p name='twenties'className='change'>{this.state.usd.bills.twenties}</p>
                 </div>
               </div>
               <div className='col-sm-3'>
                 <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
-                  <h4 className='tens' style={{fontWeight: 'bold'}}>Tens</h4>
-                  <p name='tens' className='num-tens'>{this.state.tens}</p>
+                  <h4 className='tens' style={{fontWeight: 'bold'}}> tens</h4>
+                  <p name='tens' className='change'>{this.state.usd.bills.tens}</p>
                 </div>
               </div>
               <div className='col-sm-3'>
                 <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
-                  <h4 className='fives' style={{fontWeight: 'bold'}}>Fives</h4>
-                  <p name='fives' className='num-fives'>{this.state.fives}</p>
+                  <h4 className='fives' style={{fontWeight: 'bold'}}> fives</h4>
+                  <p name='fives' className='change'>{this.state.usd.bills.fives}</p>
                 </div>
               </div>
               <div className='col-sm-3'>
                 <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
-                  <h4 className='ones' style={{fontWeight: 'bold'}}>Ones</h4>
-                  <p name='ones' className='num-ones'>{this.state.ones}</p>
+                  <h4 className='ones' style={{fontWeight: 'bold'}}>ones</h4>
+                  <p name='ones' className='change'>{this.state.usd.bills.ones}</p>
                 </div>
               </div>
             </div>
             <div className='row'>
               <div className='col-sm-3'>
                 <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
-                  <h4 className='quarters' style={{fontWeight: 'bold'}}>Quarters</h4>
-                  <p name='quarters' className='num-quarters'>{this.state.quarters}</p>
+                  <h4 className='quarters' style={{fontWeight: 'bold'}}>quarters</h4>
+                  <p name='quarters' className='change'>{this.state.usd.coins.quarters}</p>
                 </div>
               </div>
               <div className='col-sm-3'>
                 <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
-                  <h4 className='dimes' style={{fontWeight: 'bold'}}>Dimes</h4>
-                  <p name='dimes' className='num-dimes'>{this.state.dimes}</p>
+                  <h4 className='dimes' style={{fontWeight: 'bold'}}>dimes</h4>
+                  <p name='dimes' className='change'>{this.state.usd.coins.dimes}</p>
                 </div>
               </div>
               <div className='col-sm-3'>
                 <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
-                  <h4 className='nickels' style={{fontWeight: 'bold'}}>Nickels</h4>
-                  <p name='nickels' className='num-nickels'>{this.state.nickels}</p>
+                  <h4 className='nickels' style={{fontWeight: 'bold'}}>nickels</h4>
+                  <p name='nickels' className='change'>{this.state.usd.coins.nickels}</p>
                 </div>
               </div>
               <div className='col-sm-3'>
                 <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
-                  <h4 className='pennies' style={{fontWeight: 'bold'}}>Pennies</h4>
-                  <p name='pennies' className='num-pennies'>{this.state.pennies}</p>
+                  <h4 className='pennies' style={{fontWeight: 'bold'}}>pennies</h4>
+                  <p name='pennies' className='change'>{this.state.usd.coins.pennies}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className='col-md-8 well' id='eur' hidden={this.state.usa}>
+            <div className='alerts' style={{textAlign: 'center', fontWeight: 'bold'}}>
+              <div className='alert alert-success' hidden={!this.state.success}>{this.state.alertSuccessEur}</div>
+              <div className='alert alert-danger' hidden={this.state.success} >{this.state.alertDangerEur}</div>
+            </div>
+            <div className='row'>
+              <div className='col-md-3'>
+                <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
+                  <h4 className='twenties' style={{fontWeight: 'bold'}}>EUR Twenties</h4>
+                  <p name='twenties'className='num-twenties'>{this.state.eur.bills.twenties}</p>
+                </div>
+              </div>
+              <div className='col-sm-3'>
+                <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
+                  <h4 className='tens' style={{fontWeight: 'bold'}}>EUR Tens</h4>
+                  <p name='tens' className='num-tens'>{this.state.eur.bills.tens}</p>
+                </div>
+              </div>
+              <div className='col-sm-3'>
+                <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
+                  <h4 className='fives' style={{fontWeight: 'bold'}}>EUR Fives</h4>
+                  <p name='fives' className='num-fives'>{this.state.eur.bills.fives}</p>
+                </div>
+              </div>
+              <div className='col-sm-3'>
+                <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
+                  <h4 className='ones' style={{fontWeight: 'bold'}}>EUR Ones</h4>
+                  <p name='ones' className='num-ones'>{this.state.eur.coins.ones}</p>
+                </div>
+              </div>
+            </div>
+            <div className='row'>
+              <div className='col-sm-3'>
+                <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
+                  <h4 className='quarters' style={{fontWeight: 'bold'}}>EUR Twenty Cents</h4>
+                  <p name='quarters' className='num-quarters'>{this.state.eur.coins.twentyCent}</p>
+                </div>
+              </div>
+              <div className='col-sm-3'>
+                <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
+                  <h4 className='dimes' style={{fontWeight: 'bold'}}>EUR Ten Cents</h4>
+                  <p name='dimes' className='num-dimes'>{this.state.eur.coins.tenCent}</p>
+                </div>
+              </div>
+              <div className='col-sm-3'>
+                <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
+                  <h4 className='nickels' style={{fontWeight: 'bold'}}>EUR Five Cents</h4>
+                  <p name='nickels' className='num-nickels'>{this.state.eur.coins.fiveCent}</p>
+                </div>
+              </div>
+              <div className='col-sm-3'>
+                <div className='well' style={{backgroundColor:'#e6e6e6',textAlign:'center'}}>
+                  <h4 className='pennies' style={{fontWeight: 'bold'}}>EUR One Cent</h4>
+                  <p name='pennies' className='num-pennies'>{this.state.eur.coins.oneCent}</p>
                 </div>
               </div>
             </div>

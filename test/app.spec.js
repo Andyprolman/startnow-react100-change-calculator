@@ -10,19 +10,19 @@ const app = express();
 app.use(express.static(path.join(__dirname, '/../public')));
 app.use(express.static(path.join(__dirname, '/../dist')));
 
-app.listen(8888);
+app.listen(3000);
 
-const url = 'http://localhost:8888';
+const url = 'http://localhost:3000';
 
 describe('express', function() {
-  this.timeout(6500);
+  this.timeout(65000);
   beforeEach(() => {
     nightmare = new Nightmare();
   });
 
   it('should load successfully', () => axios.get(url).then(r => expect(r.status === 200)));
 
-  it('should include an input element for the user to enter amount due', () =>
+  it('should include an input element for the user to enter amount due', (done) =>
     nightmare
     .goto(url)
     .evaluate(() => document.querySelector('input[name=amountDue]'))
@@ -30,6 +30,7 @@ describe('express', function() {
     .then((input) => {
       expect(input).to.not.be.null;
       expect(typeof input).to.equal('object');
+      done();
     })
   );
 
@@ -60,7 +61,7 @@ describe('express', function() {
     .goto(url)
     .type('input[name=amountDue]', 13.01)
     .type('input[name=amountReceived]', 20)
-    .click('button.btn')
+    .click('button.btn-primary')
     .wait('div.alert.alert-success')
     .evaluate(() => document.querySelector('div.alert.alert-success').innerText)
     .end()
@@ -72,7 +73,7 @@ describe('express', function() {
     .goto(url)
     .type('input[name=amountDue]', 13.01)
     .type('input[name=amountReceived]', 20)
-    .click('button.btn')
+    .click('button.btn-primary')
     .wait('div.alert.alert-success')
     .evaluate(() => Array.from(document.querySelectorAll('.change')).map(e => e.innerText))
     .then((results) => {
